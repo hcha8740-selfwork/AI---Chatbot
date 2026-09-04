@@ -1,0 +1,1336 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>NOVA AI — Intelligence Redefined</title>
+    <meta name="description"
+        content="NOVA AI is a minimalist, premium intelligent assistant powered by Google Gemini." />
+
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✦</text></svg>">
+
+    <!-- Typography: Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+
+    <!-- Markdown Parser & Highlight.js -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        /* ──────────────────────────────────────────────
+           DESIGN TOKENS — Dark, Minimalist & Apple-Grade
+        ────────────────────────────────────────────── */
+        :root {
+            --bg-base: #050508;
+            --bg-surface: rgba(18, 18, 24, 0.65);
+            --bg-surface-elevated: rgba(25, 25, 34, 0.85);
+            --bg-input: rgba(14, 14, 20, 0.8);
+            --bg-code: #0b0b10;
+            --bg-code-header: #121218;
+
+            --accent-purple: #7c3aed;
+            --accent-purple-glow: rgba(124, 58, 237, 0.18);
+            --accent-purple-subtle: rgba(124, 58, 237, 0.12);
+            --accent-purple-border: rgba(124, 58, 237, 0.35);
+
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --border-medium: rgba(255, 255, 255, 0.12);
+            --border-focus: rgba(124, 58, 237, 0.45);
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            --font-mono: 'JetBrains Mono', Consolas, Monaco, monospace;
+
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+
+            --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --shadow-float: 0 12px 36px rgba(0, 0, 0, 0.6);
+            --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ──────────────────────────────────────────────
+           GLOBAL RESET
+        ────────────────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        button {
+            font-family: inherit;
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+
+        textarea {
+            font-family: inherit;
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(124, 58, 237, 0.3);
+            border-radius: var(--radius-full);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(124, 58, 237, 0.6);
+        }
+
+        /* ──────────────────────────────────────────────
+           SUBTLE AMBIENT BACKGROUND
+        ────────────────────────────────────────────── */
+        .ambient-layer {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .ambient-blob {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            top: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: radial-gradient(circle, var(--accent-purple) 0%, rgba(124, 58, 237, 0.03) 55%, transparent 70%);
+            opacity: 0.15;
+            filter: blur(100px);
+        }
+
+        /* ──────────────────────────────────────────────
+           APP SHELL
+        ────────────────────────────────────────────── */
+        #app-root {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 16px;
+            width: 100%;
+        }
+
+        /* ──────────────────────────────────────────────
+           HEADER
+        ────────────────────────────────────────────── */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+
+        .brand-cluster {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon-box {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f1f5f9;
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .brand-icon-box svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .brand-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        .brand-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.8px;
+            background: linear-gradient(135deg, #ffffff 40%, #c4b5fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-tagline {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 8px #10b981;
+        }
+
+        .header-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.2s var(--ease-apple);
+        }
+
+        .header-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-surface-elevated);
+            border-color: var(--border-medium);
+        }
+
+        .header-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ──────────────────────────────────────────────
+           CHAT VIEWPORT
+        ────────────────────────────────────────────── */
+        .chat-viewport {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 24px 0 100px;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        /* ──────────────────────────────────────────────
+           WELCOME VIEW (Minimalist State)
+        ────────────────────────────────────────────── */
+        .welcome-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 270px);
+            text-align: center;
+            gap: 24px;
+            margin: auto 0;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .welcome-badge {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .welcome-badge svg {
+            width: 22px;
+            height: 22px;
+            fill: #c4b5fd;
+        }
+
+        .welcome-headline {
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: -0.4px;
+            color: var(--text-primary);
+        }
+
+        .welcome-sub {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            max-width: 480px;
+            line-height: 1.5;
+        }
+
+        .prompts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 620px;
+            margin-top: 10px;
+        }
+
+        .prompt-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s var(--ease-apple);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .prompt-card:hover {
+            background: var(--bg-surface-elevated);
+            border-color: var(--border-medium);
+            transform: translateY(-1px);
+        }
+
+        .prompt-title {
+            font-size: 0.84rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .prompt-desc {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+        }
+
+        /* ──────────────────────────────────────────────
+           MESSAGES
+        ────────────────────────────────────────────── */
+        .messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            width: 100%;
+        }
+
+        .message-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            animation: slideUpFadeIn 0.3s var(--ease-apple) forwards;
+        }
+
+        @keyframes slideUpFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* User Message */
+        .message-row.user {
+            align-items: flex-end;
+        }
+
+        .user-bubble {
+            max-width: 75%;
+            background: rgba(124, 58, 237, 0.15);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 16px;
+            font-size: 0.94rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Assistant Message */
+        .message-row.assistant {
+            align-items: flex-start;
+        }
+
+        .assistant-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 2px;
+        }
+
+        .assistant-header svg {
+            width: 13px;
+            height: 13px;
+            fill: #a78bfa;
+        }
+
+        .assistant-content {
+            width: 100%;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .assistant-content p {
+            margin-bottom: 12px;
+        }
+
+        .assistant-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .assistant-content strong {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .assistant-content ul,
+        .assistant-content ol {
+            margin: 10px 0 14px 20px;
+        }
+
+        .assistant-content li {
+            margin-bottom: 5px;
+        }
+
+        .assistant-content h1,
+        .assistant-content h2,
+        .assistant-content h3 {
+            font-weight: 600;
+            color: #ffffff;
+            margin: 16px 0 8px;
+        }
+
+        .assistant-content h1 {
+            font-size: 1.25rem;
+        }
+
+        .assistant-content h2 {
+            font-size: 1.1rem;
+        }
+
+        .assistant-content h3 {
+            font-size: 0.98rem;
+        }
+
+        .assistant-content blockquote {
+            border-left: 2px solid var(--accent-purple);
+            padding-left: 12px;
+            margin: 12px 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .assistant-content table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 14px 0;
+            font-size: 0.88rem;
+        }
+
+        .assistant-content th,
+        .assistant-content td {
+            border: 1px solid var(--border-medium);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .assistant-content th {
+            background: var(--bg-surface-elevated);
+            font-weight: 600;
+        }
+
+        /* Inline Code */
+        .assistant-content :not(pre)>code {
+            font-family: var(--font-mono);
+            font-size: 0.86em;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            color: #e2e8f0;
+        }
+
+        /* Code Block Container */
+        .code-box {
+            margin: 14px 0;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: var(--bg-code);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .code-box-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-code-header);
+            padding: 6px 12px;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-subtle);
+            user-select: none;
+        }
+
+        .copy-code-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            font-size: 0.72rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .copy-code-btn:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .copy-code-btn svg {
+            width: 12px;
+            height: 12px;
+        }
+
+        .code-box pre {
+            margin: 0;
+            padding: 14px;
+            overflow-x: auto;
+            background: transparent !important;
+        }
+
+        .code-box pre code {
+            font-family: var(--font-mono);
+            font-size: 0.84rem;
+            line-height: 1.5;
+            background: transparent !important;
+            padding: 0 !important;
+            border: none !important;
+        }
+
+        /* Message Toolbar */
+        .msg-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .toolbar-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .toolbar-btn:hover {
+            color: var(--text-primary);
+            background: var(--bg-surface);
+        }
+
+        .toolbar-btn svg {
+            width: 13px;
+            height: 13px;
+        }
+
+        /* ──────────────────────────────────────────────
+           MINIMALIST TYPING INDICATOR
+        ────────────────────────────────────────────── */
+        .typing-cluster {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 0;
+        }
+
+        .typing-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            animation: pulse-dot 1.2s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            80%,
+            100% {
+                opacity: 0.25;
+                transform: scale(0.85);
+            }
+
+            40% {
+                opacity: 1;
+                transform: scale(1.1);
+                background: #c4b5fd;
+            }
+        }
+
+        /* ──────────────────────────────────────────────
+           INPUT DOCK
+        ────────────────────────────────────────────── */
+        .input-dock {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0 16px 14px;
+            background: linear-gradient(180deg, transparent 0%, var(--bg-base) 40%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .input-card {
+            width: 100%;
+            max-width: 860px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-medium);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: var(--radius-lg);
+            padding: 10px 12px 10px 16px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            box-shadow: var(--shadow-float);
+            transition: border-color 0.2s var(--ease-apple), box-shadow 0.2s var(--ease-apple);
+        }
+
+        .input-card:focus-within {
+            border-color: rgba(124, 58, 237, 0.5);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.2);
+        }
+
+        #prompt-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 0.94rem;
+            line-height: 1.5;
+            resize: none;
+            max-height: 180px;
+            min-height: 24px;
+            padding: 4px 0;
+        }
+
+        #prompt-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-pill-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-bottom: 1px;
+            box-shadow: 0 2px 10px rgba(124, 58, 237, 0.4);
+        }
+
+        .send-pill-btn:disabled {
+            background: #232330;
+            color: #555566;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .send-pill-btn:not(:disabled):hover {
+            transform: scale(1.05);
+            background: #8b5cf6;
+        }
+
+        .send-pill-btn:not(:disabled):active {
+            transform: scale(0.95);
+        }
+
+        .send-pill-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke-width: 2.2;
+        }
+
+        .footer-credit {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+
+        /* ──────────────────────────────────────────────
+           TOAST NOTIFICATION
+        ────────────────────────────────────────────── */
+        .toast-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .toast-msg {
+            background: #161622;
+            border: 1px solid var(--border-medium);
+            color: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            animation: toastIn 0.2s var(--ease-apple) forwards;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ──────────────────────────────────────────────
+           RESPONSIVE
+        ────────────────────────────────────────────── */
+        @media (max-width: 640px) {
+            .prompts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .user-bubble {
+                max-width: 86%;
+            }
+
+            .chat-viewport {
+                padding: 16px 0 90px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Ambient Subtle Background -->
+    <div class="ambient-layer">
+        <div class="ambient-blob"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-box" id="toastBox"></div>
+
+    <div id="app-root">
+
+        <!-- ═══════════════════════════════════════════
+             HEADER
+        ════════════════════════════════════════════ -->
+        <header class="app-header">
+            <div class="brand-cluster">
+                <div class="brand-icon-box">
+                    <!-- 4-Point Star Icon -->
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z" />
+                    </svg>
+                </div>
+                <div class="brand-meta">
+                    <div class="brand-title">NOVA AI</div>
+                    <div class="brand-tagline">Powered by Gemini</div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="status-pill">
+                    <div class="status-dot"></div>
+                    <span>Operational</span>
+                </div>
+                <button class="header-btn" onclick="clearChat()" title="Clear chat history">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Clear</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ═══════════════════════════════════════════
+             CHAT VIEWPORT
+        ════════════════════════════════════════════ -->
+        <main class="chat-viewport" id="chatViewport">
+
+            <!-- Welcome Screen (Default Empty State) -->
+            <div class="welcome-container" id="welcomeContainer">
+                <div class="welcome-badge">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="welcome-headline">How can Nova assist you today?</h1>
+                    <p class="welcome-sub" style="margin-top: 6px;">
+                        Enterprise-grade intelligence tailored for technical execution, creative problem solving, and
+                        research.
+                    </p>
+                </div>
+
+                <div class="prompts-grid">
+                    <div class="prompt-card"
+                        onclick="usePrompt('How can I set up an automated customer support bot to handle common customer FAQs for my business?')">
+                        <div class="prompt-title">💬 Customer Support Bot</div>
+                        <div class="prompt-desc">Handle customer FAQs automatically</div>
+                    </div>
+                    <div class="prompt-card"
+                        onclick="usePrompt('Help me generate engaging, high-quality content for blog articles, marketing emails, and social media posts.')">
+                        <div class="prompt-title">📝 Content Generator</div>
+                        <div class="prompt-desc">Articles, emails, social posts</div>
+                    </div>
+                    <div class="prompt-card"
+                        onclick="usePrompt('How can you help me analyze business data, reports, and spreadsheets to extract actionable insights?')">
+                        <div class="prompt-title">📊 Data Analyzer</div>
+                        <div class="prompt-desc">Analyze files and reports instantly</div>
+                    </div>
+                    <div class="prompt-card"
+                        onclick="usePrompt('Tell me how a custom AI assistant can be built specifically to automate workflows for my business.')">
+                        <div class="prompt-title">🤖 Custom AI Assistant</div>
+                        <div class="prompt-desc">Built specifically for your business</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Messages List -->
+            <div class="messages-list" id="messagesList"></div>
+
+        </main>
+
+        <!-- ═══════════════════════════════════════════
+             INPUT DOCK
+        ════════════════════════════════════════════ -->
+        <div class="input-dock">
+            <div class="input-card">
+                <textarea id="prompt-input" rows="1" placeholder="Ask Nova anything..." maxlength="5000"></textarea>
+                <button class="send-pill-btn" id="sendBtn" title="Send message" disabled onclick="handleSendOrStop()">
+                    <!-- Up Arrow -->
+                    <svg id="sendIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                        <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>
+                    <!-- Stop Square -->
+                    <svg id="stopIcon" viewBox="0 0 24 24" fill="currentColor"
+                        style="display: none; width: 12px; height: 12px;">
+                        <rect x="5" y="5" width="14" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                </button>
+            </div>
+            <div class="footer-credit">
+                Built by Harsh · Nova AI © 2026
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ═══════════════════════════════════════════
+         APPLICATION JAVASCRIPT LOGIC
+    ════════════════════════════════════════════ -->
+    <script>
+        // ──────────────────────────────────────────────
+        //  CONFIG & API CONFIGURATION
+        // ──────────────────────────────────────────────
+        // API key lives server-side only now (Vercel env var GEMINI_API_KEY,
+        // read inside /api/chat.js). The browser just calls our own endpoint.
+        const GEMINI_ENDPOINT = '/api/chat';
+
+        const SYSTEM_PROMPT = `You are NOVA AI, a versatile, highly capable, and engaging AI conversational assistant.
+
+CRITICAL INSTRUCTIONS:
+1. Speak in a natural, conversational, and informative tone.
+2. DO NOT output code or technical programming scripts unless the user EXPLICITLY asks for code (e.g. "write code", "give me python script", "show code", etc.).
+3. When answering questions, provide clear explanations, practical step-by-step guidance, real-world examples, and actionable advice in plain language.
+4. Format your responses with clear headings, bullet points, and paragraphs to make them easy and pleasant to read.`;
+
+        let conversationHistory = [];
+        let isGenerating = false;
+        let abortController = null;
+
+        // Configure Marked.js + Highlight.js for Code Highlighting
+        marked.setOptions({
+            highlight: function (code, lang) {
+                const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+                return hljs.highlight(code, { language }).value;
+            },
+            langPrefix: 'hljs language-',
+            breaks: true
+        });
+
+        // Custom Code Block Renderer
+        const renderer = new marked.Renderer();
+        renderer.code = function (code, infostring) {
+            const lang = (infostring || 'code').trim().split(' ')[0];
+            const validLang = hljs.getLanguage(lang) ? lang : 'plaintext';
+            const highlighted = hljs.highlight(code, { language: validLang }).value;
+            const blockId = 'cb_' + Math.random().toString(36).substr(2, 9);
+
+            return `
+                <div class="code-box">
+                    <div class="code-box-header">
+                        <span>${escapeHTML(lang)}</span>
+                        <button class="copy-code-btn" onclick="copyCode(this, '${blockId}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span>Copy code</span>
+                        </button>
+                    </div>
+                    <pre><code id="${blockId}" class="hljs language-${validLang}">${highlighted}</code></pre>
+                </div>
+            `;
+        };
+        marked.use({ renderer });
+
+        // ──────────────────────────────────────────────
+        //  DOM ELEMENTS
+        // ──────────────────────────────────────────────
+        const promptInput = document.getElementById('prompt-input');
+        const sendBtn = document.getElementById('sendBtn');
+        const sendIcon = document.getElementById('sendIcon');
+        const stopIcon = document.getElementById('stopIcon');
+        const chatViewport = document.getElementById('chatViewport');
+        const welcomeContainer = document.getElementById('welcomeContainer');
+        const messagesList = document.getElementById('messagesList');
+        const toastBox = document.getElementById('toastBox');
+
+        // ──────────────────────────────────────────────
+        //  INPUT AUTO-RESIZE & SUBMISSION
+        // ──────────────────────────────────────────────
+        promptInput.addEventListener('input', () => {
+            promptInput.style.height = 'auto';
+            promptInput.style.height = Math.min(promptInput.scrollHeight, 180) + 'px';
+            updateSendState();
+        });
+
+        promptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!sendBtn.disabled && !isGenerating) {
+                    handleSendOrStop();
+                }
+            }
+        });
+
+        function updateSendState() {
+            if (isGenerating) {
+                sendBtn.disabled = false;
+                sendIcon.style.display = 'none';
+                stopIcon.style.display = 'block';
+                sendBtn.title = 'Stop generating';
+            } else {
+                sendIcon.style.display = 'block';
+                stopIcon.style.display = 'none';
+                sendBtn.title = 'Send message';
+                sendBtn.disabled = promptInput.value.trim() === '';
+            }
+        }
+
+        function usePrompt(text) {
+            promptInput.value = text;
+            promptInput.dispatchEvent(new Event('input'));
+            handleSendOrStop();
+        }
+
+        function scrollToBottom() {
+            requestAnimationFrame(() => {
+                chatViewport.scrollTop = chatViewport.scrollHeight;
+            });
+        }
+
+        // ──────────────────────────────────────────────
+        //  MESSAGE FLOW & API DISPATCH
+        // ──────────────────────────────────────────────
+        async function handleSendOrStop() {
+            if (isGenerating) {
+                if (abortController) {
+                    abortController.abort();
+                    showToast('Generation stopped');
+                }
+                return;
+            }
+
+            const query = promptInput.value.trim();
+            if (!query) return;
+
+            welcomeContainer.style.display = 'none';
+
+            // Append User message
+            appendUserMessage(query);
+            conversationHistory.push({ role: 'user', parts: [{ text: query }] });
+
+            promptInput.value = '';
+            promptInput.style.height = 'auto';
+            updateSendState();
+
+            // Append Assistant placeholder with Typing Indicator
+            isGenerating = true;
+            updateSendState();
+            abortController = new AbortController();
+
+            const assistantRow = document.createElement('div');
+            assistantRow.className = 'message-row assistant';
+            assistantRow.innerHTML = `
+                <div class="assistant-header">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z"/></svg>
+                    <span>NOVA</span>
+                </div>
+                <div class="assistant-content">
+                    <div class="typing-cluster">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            messagesList.appendChild(assistantRow);
+            scrollToBottom();
+
+            const contentEl = assistantRow.querySelector('.assistant-content');
+            let accumulatedText = '';
+
+            try {
+                const response = await fetch(GEMINI_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                        contents: conversationHistory,
+                        generationConfig: {
+                            temperature: 0.7,
+                            maxOutputTokens: 3072,
+                        }
+                    }),
+                    signal: abortController.signal
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData?.error?.message || `API Error (${response.status})`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const jsonStr = line.slice(6).trim();
+                            if (!jsonStr) continue;
+
+                            try {
+                                const data = JSON.parse(jsonStr);
+                                const parts = data?.candidates?.[0]?.content?.parts || [];
+                                for (const p of parts) {
+                                    if (!p.thought && p.text) {
+                                        accumulatedText += p.text;
+                                        contentEl.innerHTML = marked.parse(accumulatedText);
+                                        scrollToBottom();
+                                    }
+                                }
+                            } catch (e) {
+                                // Ignore json parse errors for incomplete chunks
+                            }
+                        }
+                    }
+                }
+
+                if (!accumulatedText) {
+                    throw new Error('Received empty response from model.');
+                }
+
+                conversationHistory.push({ role: 'model', parts: [{ text: accumulatedText }] });
+
+                // Attach Copy button
+                const toolbar = document.createElement('div');
+                toolbar.className = 'msg-toolbar';
+                toolbar.innerHTML = `
+                    <button class="toolbar-btn" onclick="copyMessage(this, \`${escapeForAttr(accumulatedText)}\`)" title="Copy message">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span>Copy</span>
+                    </button>
+                `;
+                assistantRow.appendChild(toolbar);
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    if (accumulatedText) {
+                        conversationHistory.push({ role: 'model', parts: [{ text: accumulatedText }] });
+                        const toolbar = document.createElement('div');
+                        toolbar.className = 'msg-toolbar';
+                        toolbar.innerHTML = `
+                            <button class="toolbar-btn" onclick="copyMessage(this, \`${escapeForAttr(accumulatedText)}\`)" title="Copy message">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                </svg>
+                                <span>Copy</span>
+                            </button>
+                        `;
+                        assistantRow.appendChild(toolbar);
+                    } else {
+                        assistantRow.remove();
+                    }
+                } else {
+                    if (!accumulatedText) {
+                        assistantRow.remove();
+                        appendErrorMessage(error.message);
+                    } else {
+                        showToast(`Error: ${error.message}`);
+                    }
+                }
+            } finally {
+                isGenerating = false;
+                abortController = null;
+                updateSendState();
+                promptInput.focus();
+            }
+        }
+
+        // ──────────────────────────────────────────────
+        //  UI RENDERING
+        // ──────────────────────────────────────────────
+        function appendUserMessage(text) {
+            const row = document.createElement('div');
+            row.className = 'message-row user';
+            row.innerHTML = `<div class="user-bubble">${escapeHTML(text)}</div>`;
+            messagesList.appendChild(row);
+            scrollToBottom();
+        }
+
+        function appendAssistantMessage(markdownText) {
+            const row = document.createElement('div');
+            row.className = 'message-row assistant';
+
+            const parsedHTML = marked.parse(markdownText);
+
+            row.innerHTML = `
+                <div class="assistant-header">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L14.09 8.26L20 9.27L15.55 13.97L16.91 20L12 16.9L7.09 20L8.45 13.97L4 9.27L9.91 8.26L12 2Z"/></svg>
+                    <span>NOVA</span>
+                </div>
+                <div class="assistant-content">${parsedHTML}</div>
+                <div class="msg-toolbar">
+                    <button class="toolbar-btn" onclick="copyMessage(this, \`${escapeForAttr(markdownText)}\`)" title="Copy message">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        <span>Copy</span>
+                    </button>
+                </div>
+            `;
+            messagesList.appendChild(row);
+            scrollToBottom();
+        }
+
+        function appendErrorMessage(errorMsg) {
+            const row = document.createElement('div');
+            row.className = 'message-row assistant';
+            row.innerHTML = `
+                <div class="assistant-header" style="color: #f87171;">
+                    <span>Error</span>
+                </div>
+                <div class="assistant-content" style="color: #fca5a5; font-size: 0.9rem;">
+                    ${escapeHTML(errorMsg)}
+                </div>
+            `;
+            messagesList.appendChild(row);
+            scrollToBottom();
+        }
+
+        function clearChat() {
+            if (conversationHistory.length === 0) return;
+            conversationHistory = [];
+            messagesList.innerHTML = '';
+            welcomeContainer.style.display = 'flex';
+            showToast('Chat history cleared');
+            promptInput.focus();
+        }
+
+        // ──────────────────────────────────────────────
+        //  UTILITIES
+        // ──────────────────────────────────────────────
+        function copyCode(btn, blockId) {
+            const codeEl = document.getElementById(blockId);
+            if (!codeEl) return;
+            navigator.clipboard.writeText(codeEl.innerText).then(() => {
+                const label = btn.querySelector('span');
+                const prev = label.textContent;
+                label.textContent = 'Copied';
+                btn.style.color = '#ffffff';
+                setTimeout(() => {
+                    label.textContent = prev;
+                    btn.style.color = '';
+                }, 2000);
+            });
+        }
+
+        function copyMessage(btn, text) {
+            const decoded = text.replace(/\\`/g, '`').replace(/\\\$/g, '$').replace(/\\\\/g, '\\');
+            navigator.clipboard.writeText(decoded).then(() => {
+                showToast('Copied to clipboard');
+            });
+        }
+
+        function showToast(text) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            toast.textContent = text;
+            toastBox.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-6px)';
+                toast.style.transition = 'all 0.2s ease';
+                setTimeout(() => toast.remove(), 200);
+            }, 2200);
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag] || tag));
+        }
+
+        function escapeForAttr(str) {
+            if (!str) return '';
+            return str.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+        }
+
+        // Auto-focus on launch
+        window.addEventListener('DOMContentLoaded', () => {
+            promptInput.focus();
+        });
+    </script>
+</body>
+
+</html>
